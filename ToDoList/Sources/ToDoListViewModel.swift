@@ -5,11 +5,15 @@ final class ToDoListViewModel: ObservableObject {
 
     private let repository: ToDoListRepositoryType
 
+    @Published var currentFilterIndex: Int = 0 // Pour suivre le filtre actuel
+
     // MARK: - Init
 
     init(repository: ToDoListRepositoryType) {
         self.repository = repository
         self.toDoItems = repository.loadToDoItems()
+        applyFilter(at: currentFilterIndex) // Appliquer le filtre initial
+
     }
 
     // MARK: - Outputs
@@ -42,6 +46,19 @@ final class ToDoListViewModel: ObservableObject {
 
     /// Apply the filter to update the list.
     func applyFilter(at index: Int) {
-        // TODO: - Implement the logic for filtering
-    }
+           currentFilterIndex = index // Mettre à jour l'index du filtre actuel
+
+            switch index {
+            case 0:
+                toDoItems = repository.loadToDoItems() // Tous les éléments
+            case 1:
+                toDoItems = repository.loadToDoItems().filter { $0.isDone } // Éléments terminés
+            case 2:
+                toDoItems = repository.loadToDoItems().filter { !$0.isDone } // Éléments non terminés
+            default:
+                toDoItems = repository.loadToDoItems() // Fallback à tous les éléments
+            }
+        }
+    
+
 }
