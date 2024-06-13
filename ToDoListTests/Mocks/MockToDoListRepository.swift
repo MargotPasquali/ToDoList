@@ -1,7 +1,7 @@
 @testable import ToDoList
 import Foundation
 
-final class MockToDoListRepository: ToDoListRepositoryType {
+final class MockToDoListRepository: ToDoListRepository {
     var mockToDoItems: [ToDoItem]
 
     init(initialItems: [ToDoItem] = []) {
@@ -9,7 +9,7 @@ final class MockToDoListRepository: ToDoListRepositoryType {
     }
 
     func loadToDoItems() -> [ToDoItem] {
-        return mockToDoItems
+        mockToDoItems
     }
 
     func saveToDoItems(_ items: [ToDoItem]) {

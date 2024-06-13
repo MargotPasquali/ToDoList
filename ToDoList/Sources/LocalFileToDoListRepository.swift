@@ -1,11 +1,11 @@
 import Foundation
 
-protocol ToDoListRepositoryType {
+protocol ToDoListRepository {
     func loadToDoItems() -> [ToDoItem]
     func saveToDoItems(_ toDoItems: [ToDoItem])
 }
 
-final class ToDoListRepository: ToDoListRepositoryType {
+final class LocalFileToDoListRepository: ToDoListRepository {
     private let fileURL: URL
 
     init() {

@@ -1,64 +1,79 @@
 import SwiftUI
 
 final class ToDoListViewModel: ObservableObject {
-    // MARK: - Private properties
 
-    private let repository: ToDoListRepositoryType
+    // MARK: - Constants
 
-    @Published var currentFilterIndex: Int = 0 // Pour suivre le filtre actuel
+    private let repository: ToDoListRepository
 
-    // MARK: - Init
+    // MARK: - Properties
 
-    init(repository: ToDoListRepositoryType) {
-        self.repository = repository
-        self.toDoItems = repository.loadToDoItems()
-        applyFilter(at: currentFilterIndex) // Appliquer le filtre initial
-
-    }
-
-    // MARK: - Outputs
-
-    /// Publisher for the list of to-do items.
-    @Published var toDoItems: [ToDoItem] = [] {
+    @Published var currentFilterIndex = 0 {
         didSet {
-            repository.saveToDoItems(toDoItems)
+            applyFilter()
         }
     }
 
-    // MARK: - Inputs
+    private (set) var toDoItems: [ToDoItem] = []
+
+    @Published
+    var filteredItems: [ToDoItem] = []
+
+    // MARK: - Init
+
+    init(repository: ToDoListRepository = LocalFileToDoListRepository()) {
+        self.repository = repository
+
+        toDoItems = repository.loadToDoItems()
+
+        filteredItems = toDoItems
+    }
+
+    // MARK: - Functions
 
     // Add a new to-do item with priority and category
-    func add(item: ToDoItem) {
-        toDoItems.append(item)
+    func addItem(with title: String, isDone: Bool = false) {
+        guard !title.isEmpty else { return }
+
+        toDoItems.append(ToDoItem(title: title, isDone: isDone))
+
+        repository.saveToDoItems(toDoItems)
     }
 
     /// Toggles the completion status of a to-do item.
     func toggleTodoItemCompletion(_ item: ToDoItem) {
         if let index = toDoItems.firstIndex(where: { $0.id == item.id }) {
-            toDoItems[index].isDone.toggle()
+            toDoItems[index].toggleDone()
         }
+
+        applyFilter()
+
+        repository.saveToDoItems(toDoItems)
     }
 
     /// Removes a to-do item from the list.
-    func removeTodoItem(_ item: ToDoItem) {
-        toDoItems.removeAll { $0.id == item.id }
+    func removeTodoItem(_ index: Int) {
+        let itemToDelete = toDoItems[index]
+
+        toDoItems.removeAll { $0.id == itemToDelete.id }
+
+        repository.saveToDoItems(toDoItems)
+    }
+
+    func applyFilter() {
+        filteredItems = filter(at: currentFilterIndex, to: toDoItems)
     }
 
     /// Apply the filter to update the list.
-    func applyFilter(at index: Int) {
-           currentFilterIndex = index // Mettre à jour l'index du filtre actuel
+    private func filter(at index: Int, to items: [ToDoItem]) -> [ToDoItem] {
+        return switch index {
+        case 1:
+            items.filter { $0.isDone }
+        case 2:
+            items.filter { !$0.isDone }
 
-            switch index {
-            case 0:
-                toDoItems = repository.loadToDoItems() // Tous les éléments
-            case 1:
-                toDoItems = repository.loadToDoItems().filter { $0.isDone } // Éléments terminés
-            case 2:
-                toDoItems = repository.loadToDoItems().filter { !$0.isDone } // Éléments non terminés
-            default:
-                toDoItems = repository.loadToDoItems() // Fallback à tous les éléments
-            }
+        default:
+            items
         }
-    
-
+    }
 }

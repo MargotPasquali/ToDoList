@@ -6,7 +6,7 @@ struct ToDoListApp: App {
         WindowGroup {
             ToDoListView(
                 viewModel: ToDoListViewModel(
-                    repository: ToDoListRepository()
+                    repository: LocalFileToDoListRepository()
                 )
             )
         }
