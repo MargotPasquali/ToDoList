@@ -16,13 +16,13 @@ struct ToDoListView: View {
                 VStack {
                     // Filter selector with a Picker
                     Picker("Filter", selection: $filterIndex) {
-                                       ForEach(Array(filters.enumerated()), id: \.element) { index, filter in
+                        ForEach(Array(filters.enumerated()), id: \.element) { index, filter in
                                            Text(filter).tag(index)
                                        }
                                    }
-                                   .pickerStyle(SegmentedPickerStyle())
-                                   .padding()
-                                   .onChange(of: filterIndex) { newValue in
+                            .pickerStyle(SegmentedPickerStyle())
+                            .padding()
+                            .onChange(of: filterIndex) { newValue in
                                        // Appel à applyFilter du ViewModel avec l'index correct
                                        viewModel.applyFilter(at: newValue)
                         }
