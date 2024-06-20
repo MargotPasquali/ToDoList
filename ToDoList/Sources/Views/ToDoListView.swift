@@ -5,56 +5,18 @@ struct ToDoListView: View {
     @State private var newTodoTitle = ""
     @State private var isShowingAlert = false
     @State private var isAddingTodo = false
-    let filters = ["All", "Done", "Not Done"]  // Correspond aux indices 0, 1, et 2 du ViewModel
+
     
-    // New state for filter index
-    @State private var filterIndex = 0
+// Utiliser l'enum Filter directement
+    @State private var selectedFilter: ToDoListViewModel.Filter = .all
     
     var body: some View {
         NavigationView {
             VStack {
-                VStack {
-                    // Filter selector with a Picker
-                    Picker("Filter", selection: $filterIndex) {
-                        ForEach(Array(filters.enumerated()), id: \.element) { index, filter in
-                                           Text(filter).tag(index)
-                                       }
-                                   }
-                            .pickerStyle(SegmentedPickerStyle())
-                            .padding()
-                            .onChange(of: filterIndex) { newValue in
-                                       // Appel à applyFilter du ViewModel avec l'index correct
-                                       viewModel.applyFilter(at: newValue)
-                        }
-                    }.padding(.horizontal)
-                    .padding(.vertical)
-                    
+                    getFilter()
                     
                     // List of tasks
-                    List {
-                        ForEach(viewModel.toDoItems) { item in
-                            HStack {
-                                Button(action: {
-                                    viewModel.toggleTodoItemCompletion(item)
-                                }) {
-                                    Image(systemName: item.isDone ? "checkmark.circle.fill" : "circle")
-                                        .resizable()
-                                        .frame(width: 25, height: 25)
-                                        .foregroundColor(item.isDone ? .green : .primary)
-                                }
-                                Text(item.title)
-                                    .font(item.isDone ? .subheadline : .body)
-                                    .strikethrough(item.isDone)
-                                    .foregroundColor(item.isDone ? .gray : .primary)
-                            }
-                        }
-                        .onDelete { indices in
-                            indices.forEach { index in
-                                let item = viewModel.toDoItems[index]
-                                viewModel.removeTodoItem(item)
-                            }
-                        }
-                    }
+                    getListofToDoItems()
                     
                     // Sticky bottom view for adding todos
                     if isAddingTodo {
@@ -110,15 +72,51 @@ struct ToDoListView: View {
             }
             
         }
-        
+    func getFilter() -> some View {
+        VStack {
+            // Filter selector with a Picker
+            Picker("Filter", selection: $selectedFilter) {
+                ForEach(ToDoListViewModel.Filter.allCases) { filter in
+                    Text(filter.rawValue).tag(filter)
+                               }
+                           }
+                    .pickerStyle(SegmentedPickerStyle())
+                    .padding()
+                    .onChange(of: selectedFilter) { newValue in
+                               // Appel à applyFilter du ViewModel avec l'index correct
+                               viewModel.applyFilter(to: newValue)
+                }
+            }.padding()
     }
     
-    struct ToDoListView_Previews: PreviewProvider {
-        static var previews: some View {
-            ToDoListView(
-                viewModel: ToDoListViewModel(
-                    repository: ToDoListRepository()
-                )
-            )
+    func getListofToDoItems() -> some View {
+        List {
+            ForEach(viewModel.toDoItems) { item in
+                HStack {
+                    Button(action: {
+                        viewModel.toggleTodoItemCompletion(item)
+                    }) {
+                        Image(systemName: item.isDone ? "checkmark.circle.fill" : "circle")
+                            .resizable()
+                            .frame(width: 25, height: 25)
+                            .foregroundColor(item.isDone ? .green : .primary)
+                    }
+                    Text(item.title)
+                        .font(item.isDone ? .subheadline : .body)
+                        .strikethrough(item.isDone)
+                        .foregroundColor(item.isDone ? .gray : .primary)
+                }
+            }
+            .onDelete { indices in
+                indices.forEach { index in
+                    let item = viewModel.toDoItems[index]
+                    viewModel.removeTodoItem(item)
+                }
+            }
         }
     }
+    }
+
+#Preview {
+    ToDoListView(viewModel: ToDoListViewModel(repository: ToDoListRepository()))
+}
